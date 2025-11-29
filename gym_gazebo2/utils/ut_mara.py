@@ -1,25 +1,22 @@
 import numpy as np
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from PyKDL import Jacobian, JntArray # For KDL Jacobians
+from PyKDL import Jacobian, JntArray  # For KDL Jacobians
+
 
 def processObservations(message, agent):
-    """
-    Helper fuinction to convert a ROS message to joint angles and velocities.
-    Check for and handle the case where a message is either malformed
-    or contains joint values in an order different from that expected observation_callback
-    in hyperparams['jointOrder']
-    """
+
     if not message:
         print("Message is empty")
         return None
     else:
         # # Check if joint values are in the expected order and size.
-        if message.joint_names != agent['jointOrder']:
+        if message.joint_names != agent["jointOrder"]:
             # Check that the message is of same size as the expected message.
-            if len(message.joint_names) != len(agent['jointOrder']):
+            if len(message.joint_names) != len(agent["jointOrder"]):
                 raise Exception
 
-        return np.array(message.actual.positions) # + message.actual.velocities
+        return np.array(message.actual.positions)  # + message.actual.velocities
+
 
 def getJacobians(state, numberOfJoints, jacSolver):
     """
@@ -39,11 +36,16 @@ def getJacobians(state, numberOfJoints, jacSolver):
     # Update the jacobian by solving for the given angles.observation_callback
     jacSolver.JntToJac(angles, jacobian)
     # Initialize a numpy array to store the Jacobian.
-    jac = np.array([[jacobian[i, j] for j in range(jacobian.columns())] \
-        for i in range(jacobian.rows())])
+    jac = np.array(
+        [
+            [jacobian[i, j] for j in range(jacobian.columns())]
+            for i in range(jacobian.rows())
+        ]
+    )
     # Only want the cartesian position, not Roll, Pitch, Yaw (RPY) Angles
     eeJacobians = jac
     return eeJacobians
+
 
 def getEePointsJacobians(refJacobian, eePoints, refRot, numberOfJoints):
     """
@@ -58,11 +60,12 @@ def getEePointsJacobians(refJacobian, eePoints, refRot, numberOfJoints):
     refJacobiansTrans = refJacobian[:3, :]
     refJacobiansRot = refJacobian[3:, :]
     endEffectorPointsRot = np.expand_dims(refRot.dot(eePoints.T).T, axis=1)
-    eePointsJacTrans = np.tile(refJacobiansTrans, (eePoints.shape[0], 1)) + \
-                                np.cross(refJacobiansRot.T, endEffectorPointsRot).transpose(
-                                    (0, 2, 1)).reshape(-1, numberOfJoints)
+    eePointsJacTrans = np.tile(refJacobiansTrans, (eePoints.shape[0], 1)) + np.cross(
+        refJacobiansRot.T, endEffectorPointsRot
+    ).transpose((0, 2, 1)).reshape(-1, numberOfJoints)
     eePointsJacRot = np.tile(refJacobiansRot, (eePoints.shape[0], 1))
     return eePointsJacTrans, eePointsJacRot
+
 
 def getEePointsVelocities(refJacobian, eePoints, refRot, jointVelocities):
     """
@@ -77,9 +80,11 @@ def getEePointsVelocities(refJacobian, eePoints, refRot, jointVelocities):
     refJacobiansRot = refJacobian[3:, :]
     eeVelocitiesTrans = np.dot(refJacobiansTrans, jointVelocities)
     eeVelocitiesRot = np.dot(refJacobiansRot, jointVelocities)
-    eeVelocities = eeVelocitiesTrans + np.cross(eeVelocitiesRot.reshape(1, 3),
-                                                refRot.dot(eePoints.T).T)
+    eeVelocities = eeVelocitiesTrans + np.cross(
+        eeVelocitiesRot.reshape(1, 3), refRot.dot(eePoints.T).T
+    )
     return eeVelocities.reshape(-1)
+
 
 def getTrajectoryMessage(action, jointOrder, velocity):
     """
@@ -94,12 +99,13 @@ def getTrajectoryMessage(action, jointOrder, velocity):
     target = JointTrajectoryPoint()
     actionFloat = [float(i) for i in action]
     target.positions = actionFloat
-    target.velocities = [velocity]*action.size
+    target.velocities = [velocity] * action.size
 
     target.time_from_start.nanosec = 1000000
 
     actionMsg.points = [target]
     return actionMsg
+
 
 def positionsMatch(action, lastObservation):
     """
@@ -107,7 +113,7 @@ def positionsMatch(action, lastObservation):
     Returns: bool. True if the position is final, False if not.
     """
     acceptedError = 0.01
-    for i in range(action.size -1): #lastObservation loses last pose
+    for i in range(action.size - 1):  # lastObservation loses last pose
         if abs(action[i] - lastObservation[i]) > acceptedError:
             return False
     return True

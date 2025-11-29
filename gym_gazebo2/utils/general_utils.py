@@ -1,4 +1,5 @@
-""" This file defines general utility functions and classes. """
+"""This file defines general utility functions and classes."""
+
 import math
 import numpy as np
 
@@ -7,11 +8,13 @@ import numpy as np
 # sys.path.append('/home/rkojcev/ros_python3/devel/lib')
 import PyKDL as kdl
 
-class BundleType():
+
+class BundleType:
     """
     This class bundles many fields, similar to a record or a mutable
     namedtuple.
     """
+
     def __init__(self, variables):
         for var, val in variables.items():
             object.__setattr__(self, var, val)
@@ -23,7 +26,7 @@ class BundleType():
         object.__setattr__(self, key, value)
 
 
-def checkShape(value, expectedShape, name=''):
+def checkShape(value, expectedShape, name=""):
     """
     Throws a ValueError if value.shape != expectedShape.
     Args:
@@ -32,8 +35,10 @@ def checkShape(value, expectedShape, name=''):
         name: An optional name to add to the exception message.
     """
     if value.shape != tuple(expectedShape):
-        raise ValueError('Shape mismatch %s: Expected %s, got %s' %
-                         (name, str(expectedShape), str(value.shape)))
+        raise ValueError(
+            "Shape mismatch %s: Expected %s, got %s"
+            % (name, str(expectedShape), str(value.shape))
+        )
 
 
 def finiteDifferences(func, inputs, funcOutputShape=(), epsilon=1e-5):
@@ -51,7 +56,7 @@ def finiteDifferences(func, inputs, funcOutputShape=(), epsilon=1e-5):
         Gradient vector of each dimension of func with respect to each
         dimension of input.
     """
-    gradient = np.zeros(inputs.shape+funcOutputShape)
+    gradient = np.zeros(inputs.shape + funcOutputShape)
     for idx, _ in np.ndenumerate(inputs):
         testInput = np.copy(inputs)
         testInput[idx] += epsilon
@@ -80,8 +85,10 @@ def extractCondition(hyperparams, m01):
     Pull the relevant hyperparameters corresponding to the specified
     condition, and return a new hyperparameter dictionary.
     """
-    return {var: val[m01] if isinstance(val, list) else val
-            for var, val in hyperparams.items()}
+    return {
+        var: val[m01] if isinstance(val, list) else val
+        for var, val in hyperparams.items()
+    }
 
 
 def getEePoints(offsets, eePos, eeRot):
@@ -149,9 +156,13 @@ def getRotationMatrix(angle, direction, point=None):
     rot = np.diag([cosa, cosa, cosa])
     rot += np.outer(direction, direction) * (1.0 - cosa)
     direction *= sina
-    rot += np.array([[0.0, -direction[2], direction[1]],
-                     [direction[2], 0.0, -direction[0]],
-                     [-direction[1], direction[0], 0.0]])
+    rot += np.array(
+        [
+            [0.0, -direction[2], direction[1]],
+            [direction[2], 0.0, -direction[0]],
+            [-direction[1], direction[0], 0.0],
+        ]
+    )
     matrix = np.identity(4)
     matrix[:3, :3] = rot
     if point is not None:
@@ -192,13 +203,14 @@ def rotationFromMatrix(matrix):
     # rotation angle depending on direction
     cosa = (np.trace(r33) - 1.0) / 2.0
     if abs(direction[2]) > 1e-8:
-        sina = (rot[1, 0] + (cosa-1.0)*direction[0]*direction[1]) / direction[2]
+        sina = (rot[1, 0] + (cosa - 1.0) * direction[0] * direction[1]) / direction[2]
     elif abs(direction[1]) > 1e-8:
-        sina = (rot[0, 2] + (cosa-1.0)*direction[0]*direction[2]) / direction[1]
+        sina = (rot[0, 2] + (cosa - 1.0) * direction[0] * direction[2]) / direction[1]
     else:
-        sina = (rot[2, 1] + (cosa-1.0)*direction[1]*direction[2]) / direction[0]
+        sina = (rot[2, 1] + (cosa - 1.0) * direction[1] * direction[2]) / direction[0]
     angle = math.atan2(sina, cosa)
     return angle, direction, point
+
 
 def quaternionFromMatrix(matrix, isprecise=False):
     """Return quaternion from rotation matrix.
@@ -241,7 +253,7 @@ def quaternionFromMatrix(matrix, isprecise=False):
     """
     matrix = np.array(matrix, dtype=np.float64, copy=False)[:4, :4]
     if isprecise:
-        q00 = np.empty((4, ))
+        q00 = np.empty((4,))
         t00 = np.trace(matrix)
         if t00 > matrix[3, 3]:
             q00[0] = t00
@@ -272,10 +284,14 @@ def quaternionFromMatrix(matrix, isprecise=False):
         m21 = matrix[2, 1]
         m22 = matrix[2, 2]
         # symmetric matrix k00
-        k00 = np.array([[m00-m11-m22, 0.0, 0.0, 0.0],
-                        [m01+m10, m11-m00-m22, 0.0, 0.0],
-                        [m02+m20, m12+m21, m22-m00-m11, 0.0],
-                        [m21-m12, m02-m20, m10-m01, m00+m11+m22]])
+        k00 = np.array(
+            [
+                [m00 - m11 - m22, 0.0, 0.0, 0.0],
+                [m01 + m10, m11 - m00 - m22, 0.0, 0.0],
+                [m02 + m20, m12 + m21, m22 - m00 - m11, 0.0],
+                [m21 - m12, m02 - m20, m10 - m01, m00 + m11 + m22],
+            ]
+        )
         k00 /= 3.0
         # quaternion is eigenvector of k00 that corresponds to largest eigenvalue
         w00, v00 = np.linalg.eigh(k00)
@@ -289,8 +305,9 @@ def quaternionFromMatrix(matrix, isprecise=False):
     qNew[3] = q00[0]
     return qNew
 
+
 def jointListToKdl(q00):
-    """ Return KDL JntArray converted from list q00 """
+    """Return KDL JntArray converted from list q00"""
     if q00 is None:
         return None
     if isinstance(q00, np.matrix) and q00.shape[1] == 0:
@@ -300,14 +317,15 @@ def jointListToKdl(q00):
         qKdl[i] = qi0
     return qKdl
 
+
 def jointKdlToList(q00):
-    """ Return list converted from KDL JntArray"""
+    """Return list converted from KDL JntArray"""
     if q00 is None:
         return None
     return [q00[i] for i in range(q00.rows())]
 
 
-def forwardKinematics(robotChain, linkNames, q00, baseLink='base', endLink='ee_link'):
+def forwardKinematics(robotChain, linkNames, q00, baseLink="base", endLink="ee_link"):
     """
     Perform forward kinematics
     Args:
@@ -331,25 +349,29 @@ def forwardKinematics(robotChain, linkNames, q00, baseLink='base', endLink='ee_l
     rot = pose[:3, :3]
     return pos, rot
 
+
 def doKdlFk(robotChain, q00, linkNumber):
     endeffecFrame = kdl.Frame()
     fkKdl = kdl.ChainFkSolverPos_recursive(robotChain)
-    kinematicsStatus = fkKdl.JntToCart(jointListToKdl(q00),
-                                       endeffecFrame,
-                                       linkNumber)
+    kinematicsStatus = fkKdl.JntToCart(jointListToKdl(q00), endeffecFrame, linkNumber)
     if kinematicsStatus >= 0:
         p00 = endeffecFrame.p
         matrix = endeffecFrame.M
-        return np.array([[matrix[0, 0], matrix[0, 1], matrix[0, 2], p00.x()],
-                         [matrix[1, 0], matrix[1, 1], matrix[1, 2], p00.y()],
-                         [matrix[2, 0], matrix[2, 1], matrix[2, 2], p00.z()],
-                         [0, 0, 0, 1]])
+        return np.array(
+            [
+                [matrix[0, 0], matrix[0, 1], matrix[0, 2], p00.x()],
+                [matrix[1, 0], matrix[1, 1], matrix[1, 2], p00.y()],
+                [matrix[2, 0], matrix[2, 1], matrix[2, 2], p00.z()],
+                [0, 0, 0, 1],
+            ]
+        )
     else:
         return None
 
 
-
-def inverseKinematics(robotChain, pos, rot, qGuess=None, minJoints=None, maxJoints=None):
+def inverseKinematics(
+    robotChain, pos, rot, qGuess=None, minJoints=None, maxJoints=None
+):
     """
     Perform inverse kinematics
     Args:
@@ -364,9 +386,17 @@ def inverseKinematics(robotChain, pos, rot, qGuess=None, minJoints=None, maxJoin
     """
     # print("inside inverse: ", pos, " ; ", rot)
     posKdl = kdl.Vector(pos[0], pos[1], pos[2])
-    rotKdl = kdl.Rotation(rot[0, 0], rot[0, 1], rot[0, 2],
-                          rot[1, 0], rot[1, 1], rot[1, 2],
-                          rot[2, 0], rot[2, 1], rot[2, 2])
+    rotKdl = kdl.Rotation(
+        rot[0, 0],
+        rot[0, 1],
+        rot[0, 2],
+        rot[1, 0],
+        rot[1, 1],
+        rot[1, 2],
+        rot[2, 0],
+        rot[2, 1],
+        rot[2, 2],
+    )
     frameKdl = kdl.Frame(rotKdl, posKdl)
     numJoints = robotChain.getNrOfJoints()
     minJoints = -np.pi * np.ones(numJoints) if minJoints is None else minJoints
@@ -375,15 +405,14 @@ def inverseKinematics(robotChain, pos, rot, qGuess=None, minJoints=None, maxJoin
     maxsKdl = jointListToKdl(maxJoints)
     fkKdl = kdl.ChainFkSolverPos_recursive(robotChain)
     ikVKdl = kdl.ChainIkSolverVel_pinv(robotChain)
-    ikPKdl = kdl.ChainIkSolverPos_NR_JL(robotChain, minsKdl, maxsKdl,
-                                        fkKdl, ikVKdl)
+    ikPKdl = kdl.ChainIkSolverPos_NR_JL(robotChain, minsKdl, maxsKdl, fkKdl, ikVKdl)
 
     if qGuess is None:
         # use the midpoint of the joint limits as the guess
-        lowerLim = np.where(np.isfinite(minJoints), minJoints, 0.)
-        upperLim = np.where(np.isfinite(maxJoints), maxJoints, 0.)
+        lowerLim = np.where(np.isfinite(minJoints), minJoints, 0.0)
+        upperLim = np.where(np.isfinite(maxJoints), maxJoints, 0.0)
         qGuess = (lowerLim + upperLim) / 2.0
-        qGuess = np.where(np.isnan(qGuess), [0.]*len(qGuess), qGuess)
+        qGuess = np.where(np.isnan(qGuess), [0.0] * len(qGuess), qGuess)
 
     qKdl = kdl.JntArray(numJoints)
     qGuessKdl = jointListToKdl(qGuess)

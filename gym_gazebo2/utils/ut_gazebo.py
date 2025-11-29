@@ -1,16 +1,16 @@
 from gazebo_msgs.srv import SpawnEntity
 import rclpy
 
+
 def spawnModel(node, objName, objPath, pose):
-    objFile = open(objPath, mode='r')
+    objFile = open(objPath, mode="r")
     xml = objFile.read()
     objFile.close()
 
-    # create a new SpawnEntity client
-    addEntity = node.create_client(SpawnEntity, '/spawn_entity')
+    addEntity = node.create_client(SpawnEntity, "/spawn_entity")
 
     while not addEntity.wait_for_service(timeout_sec=1.0):
-        node.get_logger().info('service not available, waiting again...')
+        node.get_logger().info("service not available, waiting again...")
 
     req = SpawnEntity.Request()
     req.name = objName
@@ -21,6 +21,7 @@ def spawnModel(node, objName, objPath, pose):
 
     future = addEntity.call_async(req)
     rclpy.spin_until_future_complete(node, future)
+
 
 def getTargetSdf():
     modelXml = """<?xml version='1.0'?>
