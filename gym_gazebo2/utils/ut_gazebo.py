@@ -7,7 +7,6 @@ def spawnModel(node, objName, objPath, pose):
     xml = objFile.read()
     objFile.close()
 
-    # create a new SpawnEntity client
     addEntity = node.create_client(SpawnEntity, "/spawn_entity")
 
     while not addEntity.wait_for_service(timeout_sec=1.0):

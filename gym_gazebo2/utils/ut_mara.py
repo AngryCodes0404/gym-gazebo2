@@ -4,12 +4,7 @@ from PyKDL import Jacobian, JntArray  # For KDL Jacobians
 
 
 def processObservations(message, agent):
-    """
-    Helper fuinction to convert a ROS message to joint angles and velocities.
-    Check for and handle the case where a message is either malformed
-    or contains joint values in an order different from that expected observation_callback
-    in hyperparams['jointOrder']
-    """
+
     if not message:
         print("Message is empty")
         return None
