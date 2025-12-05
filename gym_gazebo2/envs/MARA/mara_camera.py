@@ -40,7 +40,6 @@ from geometry_msgs.msg import Pose
 from ros2pkg.api import get_prefix_path
 from builtin_interfaces.msg import Duration
 
-# Algorithm specific
 from PyKDL import ChainJntToJacSolver  # For KDL Jacobians
 
 
@@ -100,7 +99,7 @@ class MARACameraEnv(gym.Env):
         #############################
         # Target, where should the agent reach
         self.targetPosition = np.asarray(
-            [-0.40028, 0.095615, 0.72466]
+            [-0.40037, 0.095624, 0.72439]
         )  # close to the table
         self.target_orientation = np.asarray(
             [0.0, 0.7071068, 0.7071068, 0.0]
