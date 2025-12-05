@@ -73,7 +73,7 @@ class MARARealEnv(gym.Env):
         #############################
         # Target, where should the agent reach
         self.targetPosition = np.asarray(
-            [-0.40028, 0.095615, 0.72466]
+            [-0.40022, 0.095625, 0.72464]
         )  # close to the table
         self.target_orientation = np.asarray(
             [0.0, 0.7071068, 0.7071068, 0.0]
