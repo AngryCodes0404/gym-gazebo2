@@ -6,8 +6,8 @@ not intended as API functions, and will not remain stable over time.
 # We want this since we use `utils` during our import-time sanity checks
 # that verify that our dependencies are actually present.
 
-#Usage for gym utils:
-#	from gym.utils import seeding
+# Usage for gym utils:
+# 	from gym.utils import seeding
 
-#Usage for gym_gazebo utils:
-#	from gym_gazebo2.utils import ros_utils
+# Usage for gym_gazebo utils:
+# 	from gym_gazebo2.utils import ros_utils
